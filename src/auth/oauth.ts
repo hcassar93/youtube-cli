@@ -85,6 +85,13 @@ export async function authenticate(port?: number, noBrowser: boolean = false): P
       } catch (error: any) {
         spinner.fail('Authentication failed');
         console.error(chalk.red(`Error: ${error.message}`));
+        
+        if (error.message?.includes('access_denied') || error.message?.includes('blocked')) {
+          console.log(chalk.yellow('\n⚠️  If you see "Access blocked" error:'));
+          console.log(chalk.yellow('   Make sure you added your Google email as a test user'));
+          console.log(chalk.yellow('   Go to: https://console.cloud.google.com/apis/credentials/consent'));
+        }
+        
         res.send('Authentication failed. Please try again.');
         server.close();
         resolve(false);

@@ -26,79 +26,116 @@ export async function runSetupWizard(options: any = {}): Promise<boolean> {
       console.log('2. Create a new project (or select existing)');
       console.log('3. Enable the YouTube Data API v3:');
       console.log('   https://console.cloud.google.com/apis/library/youtube.googleapis.com');
-      console.log('4. Go to Credentials → Create Credentials → OAuth 2.0 Client ID');
-      console.log('5. Application Type: "Desktop app" or "Web application"');
-      console.log('6. Add authorized redirect URI: http://localhost:3000/oauth2callback');
-      console.log('7. Download the JSON or copy the Client ID and Client Secret\n');
+      console.log('\n4. Configure OAuth Consent Screen:');
+      console.log('   https://console.cloud.google.com/apis/credentials/consent');
+      console.log(chalk.yellow('   ⚠️  IMPORTANT: Add test users (your Google email) under "Test Users"'));
+      console.log(chalk.yellow('   ⚠️  Without this, authentication will fail with "Access blocked" error'));
+      console.log('\n5. Create OAuth 2.0 Client ID:');
+      console.log('   Go to Credentials → Create Credentials → OAuth 2.0 Client ID');
+      console.log('   Application Type: "Desktop app"');
+      console.log('   Add authorized redirect URI: http://localhost:3000/oauth2callback');
+      console.log('\n6. Copy the Client ID and Client Secret\n');
       console.log(chalk.cyan('Run this command again when you have your credentials ready.\n'));
       return false;
     }
   }
 
-  let clientId = options.clientId;
-  let clientSecret = options.clientSecret;
-  let defaultPrivacy = options.defaultPrivacy || 'private';
-  let port = options.port || 3000;
+  // Check for existing configuration to allow resuming setup
+  const existingOAuth = config.get('oauth');
+  const existingDefaults = config.get('defaults');
+  
+  let clientId = options.clientId || existingOAuth?.client_id;
+  let clientSecret = options.clientSecret || existingOAuth?.client_secret;
+  let defaultPrivacy = options.defaultPrivacy || existingDefaults?.privacy || 'private';
+  let port = options.port || existingOAuth?.port || 3000;
 
   if (!options.nonInteractive) {
-    const answers = await inquirer.prompt([
-      {
+    // Display current configuration if resuming
+    if (existingOAuth?.client_id) {
+      console.log(chalk.yellow('\nℹ  Existing configuration detected. Skipping already configured values.\n'));
+      console.log(chalk.gray(`Client ID: ${existingOAuth.client_id}`));
+      console.log(chalk.gray(`Port: ${existingOAuth.port}\n`));
+    }
+    
+    // Only ask for values that aren't already configured
+    const questions: any[] = [];
+    
+    if (!clientId) {
+      questions.push({
         type: 'input',
         name: 'clientId',
         message: 'Enter your Client ID:',
-        validate: (input) => {
+        validate: (input: string) => {
           if (!input) return 'Client ID is required';
           if (!validateClientId(input)) {
             return 'Invalid Client ID format (should end with .apps.googleusercontent.com)';
           }
           return true;
         }
-      },
-      {
+      });
+    }
+    
+    if (!clientSecret) {
+      questions.push({
         type: 'password',
         name: 'clientSecret',
         message: 'Enter your Client Secret:',
         mask: '*',
-        validate: (input) => {
+        validate: (input: string) => {
           if (!input) return 'Client Secret is required';
           if (!validateClientSecret(input)) {
             return 'Invalid Client Secret format (should be at least 24 characters)';
           }
           return true;
         }
-      },
-      {
+      });
+    }
+    
+    if (!existingDefaults?.privacy) {
+      questions.push({
         type: 'list',
         name: 'defaultPrivacy',
         message: 'Default video privacy setting:',
         choices: ['private', 'unlisted', 'public'],
         default: 'private'
-      },
-      {
+      });
+    }
+    
+    if (!existingOAuth?.port) {
+      questions.push({
         type: 'number',
         name: 'port',
         message: 'OAuth callback port:',
         default: 3000,
-        validate: (input) => {
+        validate: (input: number) => {
           if (!validatePort(input)) {
             return 'Port must be between 1024 and 65535';
           }
           return true;
         }
-      },
-      {
+      });
+    }
+    
+    if (!existingDefaults?.outputFormat) {
+      questions.push({
         type: 'list',
         name: 'outputFormat',
         message: 'Preferred output format:',
         choices: ['table', 'json', 'csv'],
         default: 'table'
-      }
-    ]);
+      });
+    }
 
-    clientId = answers.clientId;
-    clientSecret = answers.clientSecret;
-    defaultPrivacy = answers.defaultPrivacy;
-    port = answers.port;
+    const answers = questions.length > 0 ? await inquirer.prompt(questions) : {};
+
+    clientId = answers.clientId || clientId;
+    clientSecret = answers.clientSecret || clientSecret;
+    defaultPrivacy = answers.defaultPrivacy || defaultPrivacy;
+    port = answers.port || port;
+    const outputFormat = answers.outputFormat || existingDefaults?.outputFormat || 'table';
+    
+    // Save output format for later use
+    config.setNested('defaults.outputFormat', outputFormat);
   }
 
   // Save configuration
@@ -111,8 +148,11 @@ export async function runSetupWizard(options: any = {}): Promise<boolean> {
 
   config.set('oauth', oauthConfig as any);
   config.setNested('defaults.privacy', defaultPrivacy);
-  config.setNested('defaults.category', '22');
-  config.setNested('defaults.outputFormat', 'table');
+  config.setNested('defaults.category', existingDefaults?.category || '22');
+  // outputFormat already saved above if interactive, or set default here if non-interactive
+  if (options.nonInteractive && !existingDefaults?.outputFormat) {
+    config.setNested('defaults.outputFormat', 'table');
+  }
   config.setNested('version', '1.0.0');
 
   console.log(chalk.green('\n✓ Configuration saved to:'), config.getPath());

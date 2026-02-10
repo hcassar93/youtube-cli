@@ -13,7 +13,7 @@ import { registerCommentsCommand, registerCommentCommand } from './commands/comm
 const program = new Command();
 
 program
-  .name('youtube-cli')
+  .name('youtube-creator-cli')
   .description('Command-line interface for YouTube Data API v3')
   .version('1.0.0');
 
@@ -59,11 +59,16 @@ program.exitOverride((err) => {
   process.exit(err.exitCode);
 });
 
-export function run(): void {
-  program.parse(process.argv);
+export async function run(): Promise<void> {
+  try {
+    await program.parseAsync(process.argv);
 
-  // Show help if no command provided
-  if (!process.argv.slice(2).length) {
-    program.outputHelp();
+    // Show help if no command provided
+    if (!process.argv.slice(2).length) {
+      program.outputHelp();
+    }
+  } catch (error) {
+    console.error(chalk.red('Error:'), error instanceof Error ? error.message : String(error));
+    process.exit(1);
   }
 }

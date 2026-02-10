@@ -1,6 +1,7 @@
 import { google, youtube_v3 } from 'googleapis';
 import { createReadStream } from 'fs';
 import { ensureValidToken } from '../auth/oauth.js';
+import { getCredentials, getRefreshToken } from '../auth/credentials.js';
 import chalk from 'chalk';
 
 export class YouTubeAPI {
@@ -12,9 +13,28 @@ export class YouTubeAPI {
       return false;
     }
 
+    const credentials = getCredentials();
+    const refreshToken = getRefreshToken();
+    
+    if (!credentials) {
+      console.error(chalk.red('OAuth credentials not found. Please run setup first.'));
+      return false;
+    }
+
+    // Create OAuth2 client and set credentials
+    const oauth2Client = new google.auth.OAuth2(
+      credentials.clientId,
+      credentials.clientSecret
+    );
+
+    oauth2Client.setCredentials({
+      access_token: token,
+      refresh_token: refreshToken || undefined
+    });
+
     this.youtube = google.youtube({
       version: 'v3',
-      auth: token
+      auth: oauth2Client
     });
 
     return true;
