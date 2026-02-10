@@ -2,6 +2,7 @@
   "name": "youtube-cli",
   "version": "1.0.0",
   "description": "Command-line interface for YouTube Data API v3",
+  "type": "module",
   "main": "dist/index.js",
   "bin": {
     "youtube-cli": "./bin/youtube"
