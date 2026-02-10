@@ -1,87 +1,99 @@
-# YouTube CLI Tool
+# YouTube Creator CLI
 
-A command-line interface for managing YouTube channels, videos, and content. Enables AI agents and developers to upload videos, manage metadata, set thumbnails, and interact with YouTube Data API v3.
+A command-line tool for managing YouTube channels, videos, and content. Upload videos, manage metadata, set thumbnails, and interact with the YouTube Data API v3.
 
 ## 🚨 Important: User-Provided Credentials
 
 This is an **open-source tool** that requires you to provide your own Google OAuth credentials. No credentials are included in this repository.
 
-## Quick Start
-
-```bash
-# Install
-npm install -g youtube-cli
-
-# Setup (first time)
-youtube-cli setup
-
-# Authenticate
-youtube-cli auth
-
-# Upload a video
-youtube-cli upload video.mp4 --title "My Video"
-```
-
 ## Prerequisites
 
 - Node.js 18 or higher
-- A Google Cloud Project with YouTube Data API v3 enabled
-- OAuth 2.0 Client credentials
+- A Google account
+- Git
 
 ## Installation
 
-### From npm
-
 ```bash
-npm install -g youtube-cli
-```
+# Clone the repository
+git clone https://github.com/yourusername/youtube-creator-cli.git
+cd youtube-creator-cli
 
-### From source
-
-```bash
-git clone https://github.com/yourusername/youtube-cli.git
-cd youtube-cli
+# Install dependencies
 npm install
+
+# Build
 npm run build
-npm link
 ```
 
-## Getting OAuth Credentials
+### Option 1: Run with npm (Recommended for Quick Start)
 
-You need to create your own Google OAuth credentials to use this tool:
+```bash
+npm run dev -- setup
+npm run dev -- auth
+npm run dev -- upload video.mp4 --title "My Video"
+```
 
-1. **Go to Google Cloud Console**: https://console.cloud.google.com/
-2. **Create a new project** (or select an existing one)
-3. **Enable YouTube Data API v3**:
+### Option 2: Link Globally (Recommended for Regular Use)
+
+Make the command available globally so you can use `youtube-creator-cli` directly:
+
+```bash
+# After building, link it globally
+npm link
+
+# Now you can use it anywhere without npm run dev
+youtube-creator-cli setup
+youtube-creator-cli auth
+youtube-creator-cli upload video.mp4 --title "My Video"
+
+# To unlink later (if needed)
+npm unlink -g youtube-creator-cli
+```
+
+> **Note:** This tool is not published to npm because Copilot can't be bothered with all that. Clone and link instead! 🤷
+
+## Getting Started
+
+### Step 1: Get OAuth Credentials from Google
+
+1. **Create a Google Cloud Project**
+   - Go to: https://console.cloud.google.com/
+   - Create a new project or select existing
+
+2. **Enable YouTube Data API v3**
    - Navigate to: https://console.cloud.google.com/apis/library/youtube.googleapis.com
    - Click "Enable"
-4. **Create OAuth 2.0 Client ID**:
+
+3. **Configure OAuth Consent Screen** ⚠️ **IMPORTANT**
+   - Go to: https://console.cloud.google.com/apis/credentials/consent
+   - Choose "External" user type
+   - Fill in app name and your email
+   - Add these scopes:
+     - `https://www.googleapis.com/auth/youtube`
+     - `https://www.googleapis.com/auth/youtube.force-ssl`
+     - `https://www.googleapis.com/auth/youtube.upload`
+   - **CRITICAL:** Add your Google email as a test user (without this, auth will fail with "Access blocked")
+
+4. **Create OAuth 2.0 Client ID**
    - Go to: https://console.cloud.google.com/apis/credentials
    - Click "Create Credentials" → "OAuth 2.0 Client ID"
-   - Application Type: "Desktop app" or "Web application"
+   - Application type: **"Desktop app"**
    - Add authorized redirect URI: `http://localhost:3000/oauth2callback`
-   - Download the JSON or copy the Client ID and Client Secret
+   - Copy the Client ID and Client Secret
 
-For detailed instructions with screenshots, see [SETUP.md](./SETUP.md).
+### Step 2: Configure the CLI
 
-## First-Time Setup
-
-Run the interactive setup wizard:
+Run the interactive setup:
 
 ```bash
-youtube-cli setup
+npm run dev -- setup
 ```
 
-The wizard will guide you through:
-1. Entering your OAuth Client ID
-2. Entering your OAuth Client Secret
-3. Setting default preferences (privacy, output format, etc.)
-4. Optional: Immediate authentication
-
-### Non-Interactive Setup
+Or non-interactive:
 
 ```bash
-youtube-cli setup \
+npm run dev -- setup \
   --client-id "YOUR_CLIENT_ID" \
   --client-secret "YOUR_CLIENT_SECRET" \
   --default-privacy private \
@@ -89,314 +101,231 @@ youtube-cli setup \
   --non-interactive
 ```
 
-## Commands
-
-### Setup & Configuration
-
-#### `youtube-cli setup`
-Interactive setup wizard for first-time configuration.
+### Step 3: Authenticate
 
 ```bash
-youtube-cli setup
+npm run dev -- auth
 ```
 
-#### `youtube-cli config show`
-Display current configuration (secrets are masked by default).
+A browser window will open. Sign in with your Google account and grant permissions.
+
+## Usage
+
+### Upload a Video
 
 ```bash
-youtube-cli config show
-youtube-cli config show --reveal-secrets  # Show full values
-```
-
-#### `youtube-cli config set <key> <value>`
-Set a configuration value.
-
-```bash
-youtube-cli config set defaults.privacy public
-youtube-cli config set oauth.port 8080
-```
-
-#### `youtube-cli reset`
-Remove all configuration and tokens.
-
-```bash
-youtube-cli reset
-youtube-cli reset --confirm  # Skip confirmation
-```
-
-### Authentication
-
-#### `youtube-cli auth`
-Authenticate with YouTube using configured credentials.
-
-```bash
-youtube-cli auth
-youtube-cli auth --port 3001           # Use different port
-youtube-cli auth --no-browser          # Don't auto-open browser
-```
-
-#### `youtube-cli logout`
-Remove stored tokens (keeps configuration).
-
-```bash
-youtube-cli logout
-```
-
-### Channels
-
-#### `youtube-cli channels`
-List your YouTube channels.
-
-```bash
-youtube-cli channels
-youtube-cli channels --format json
-```
-
-### Videos
-
-#### `youtube-cli videos`
-List your videos.
-
-```bash
-youtube-cli videos
-youtube-cli videos --limit 20
-youtube-cli videos --status private
-youtube-cli videos --format json
-```
-
-#### `youtube-cli upload <file>`
-Upload a video.
-
-```bash
-youtube-cli upload video.mp4 \
+npm run dev -- upload video.mp4 \
   --title "My Amazing Video" \
   --description "Video description here" \
   --privacy private \
-  --tags "tag1,tag2,tag3" \
-  --thumbnail thumbnail.jpg
+  --tags "tag1,tag2,tag3"
+```
 
-# With category
-youtube-cli upload video.mp4 \
-  --title "Tutorial" \
-  --category 27  # Education
+### List Your Videos
+
+```bash
+npm run dev -- videos --limit 20
+npm run dev -- videos --status private
+npm run dev -- videos --format json
+```
+
+### Update Video Metadata
+
+```bash
+npm run dev -- update VIDEO_ID \
+  --title "New Title" \
+  --description "Updated description" \
   --privacy public
 ```
 
-**Common Category IDs:**
+### Set Thumbnail
+
+```bash
+npm run dev -- thumbnail VIDEO_ID thumbnail.jpg
+```
+
+### List Channels
+
+```bash
+npm run dev -- channels
+```
+
+### Get Video Stats
+
+```bash
+npm run dev -- stats VIDEO_ID
+```
+
+### Manage Playlists
+
+```bash
+# List playlists
+npm run dev -- playlists
+
+# Create playlist
+npm run dev -- playlist-create \
+  --title "My Playlist" \
+  --privacy private
+
+# Add video to playlist
+npm run dev -- playlist-add PLAYLIST_ID VIDEO_ID
+```
+
+### Comments
+
+```bash
+# List comments
+npm run dev -- comments VIDEO_ID --limit 50
+
+# Post comment
+npm run dev -- comment VIDEO_ID "Great video!"
+```
+
+## All Commands
+
+If using `npm link` (global), replace `npm run dev --` with `youtube-creator-cli`:
+
+```bash
+# Without npm link
+npm run dev -- setup              # Interactive setup wizard
+npm run dev -- config show        # View configuration
+npm run dev -- config set KEY VAL # Set config value
+npm run dev -- reset              # Remove all config
+npm run dev -- auth               # Authenticate
+npm run dev -- logout             # Remove tokens
+npm run dev -- channels           # List channels
+npm run dev -- videos             # List videos
+npm run dev -- upload FILE        # Upload video
+npm run dev -- update VIDEO_ID    # Update video
+npm run dev -- delete VIDEO_ID    # Delete video
+npm run dev -- stats VIDEO_ID     # Get video stats
+npm run dev -- thumbnail VIDEO IMAGE # Set thumbnail
+npm run dev -- playlists          # List playlists
+npm run dev -- playlist-create    # Create playlist
+npm run dev -- playlist-add       # Add video to playlist
+npm run dev -- comments VIDEO_ID  # List comments
+npm run dev -- comment VIDEO TEXT # Post comment
+
+# With npm link (after running 'npm link')
+youtube-creator-cli setup
+youtube-creator-cli config show
+youtube-creator-cli auth
+# ... etc
+```
+
+Add `--help` to any command for more options.
+
+## Common Options
+
+- `--privacy <privacy>` - `private`, `unlisted`, or `public`
+- `--format <format>` - Output format: `table` (default) or `json`
+- `--limit <number>` - Limit results
+- `--tags <tags>` - Comma-separated tags
+- `--category <id>` - YouTube category ID
+- `--port <port>` - OAuth callback port (default: 3000)
+
+## YouTube Category IDs
+
 - `1` - Film & Animation
 - `10` - Music
 - `15` - Pets & Animals
 - `17` - Sports
 - `20` - Gaming
-- `22` - People & Blogs
+- `22` - People & Blogs (default)
 - `24` - Entertainment
 - `27` - Education
 - `28` - Science & Technology
 
-#### `youtube-cli update <videoId>`
-Update video metadata.
+## Configuration
 
-```bash
-youtube-cli update dQw4w9WgXcQ \
-  --title "New Title" \
-  --description "Updated description" \
-  --privacy public \
-  --tags "new,tags"
-```
+Configuration is stored at: `~/.youtube-creator-cli/config.json`
 
-#### `youtube-cli delete <videoId>`
-Delete a video.
+The file has restricted permissions (0600) and includes:
+- OAuth credentials (client ID, client secret)
+- Access and refresh tokens
+- Default settings (privacy, category, output format)
 
-```bash
-youtube-cli delete dQw4w9WgXcQ
-youtube-cli delete dQw4w9WgXcQ --confirm  # Skip confirmation
-```
-
-#### `youtube-cli stats <videoId>`
-Get video statistics.
-
-```bash
-youtube-cli stats dQw4w9WgXcQ
-youtube-cli stats dQw4w9WgXcQ --format json
-```
-
-### Thumbnails
-
-#### `youtube-cli thumbnail <videoId> <imagePath>`
-Set or update video thumbnail.
-
-```bash
-youtube-cli thumbnail dQw4w9WgXcQ thumbnail.jpg
-```
-
-**Requirements:**
-- Format: JPG, PNG, or GIF
-- Max size: 2MB
-- Recommended: 1280x720 pixels
-
-### Playlists
-
-#### `youtube-cli playlists`
-List your playlists.
-
-```bash
-youtube-cli playlists
-youtube-cli playlists --limit 50
-youtube-cli playlists --format json
-```
-
-#### `youtube-cli playlist-create`
-Create a new playlist.
-
-```bash
-youtube-cli playlist-create \
-  --title "My Playlist" \
-  --description "Playlist description" \
-  --privacy private
-```
-
-#### `youtube-cli playlist-add <playlistId> <videoId>`
-Add video to playlist.
-
-```bash
-youtube-cli playlist-add PLxxxxxx dQw4w9WgXcQ
-```
-
-### Comments
-
-#### `youtube-cli comments <videoId>`
-List video comments.
-
-```bash
-youtube-cli comments dQw4w9WgXcQ
-youtube-cli comments dQw4w9WgXcQ --limit 50
-youtube-cli comments dQw4w9WgXcQ --format json
-```
-
-#### `youtube-cli comment <videoId> <text>`
-Post a comment on a video.
-
-```bash
-youtube-cli comment dQw4w9WgXcQ "Great video!"
-```
-
-## Configuration File
-
-Configuration is stored at: `~/.youtube-cli/config.json`
-
-```json
-{
-  "oauth": {
-    "client_id": "your-client-id",
-    "client_secret": "your-client-secret",
-    "refresh_token": "obtained-after-auth",
-    "access_token": "obtained-after-auth",
-    "expires_at": 1234567890,
-    "redirect_uri": "http://localhost:3000/oauth2callback",
-    "port": 3000
-  },
-  "defaults": {
-    "privacy": "private",
-    "category": "22",
-    "outputFormat": "table"
-  },
-  "version": "1.0.0"
-}
-```
-
-**Security:** The config file is automatically created with `0600` permissions (owner read/write only).
+**Never commit this file to version control.**
 
 ## Troubleshooting
 
+### "Access blocked: This app's request is invalid"
+
+**Problem:** You weren't added as a test user in the OAuth consent screen.
+
+**Solution:**
+1. Go to: https://console.cloud.google.com/apis/credentials/consent
+2. Click "Test Users"
+3. Add your Google email address
+4. Try `npm run dev -- auth` again
+
 ### "Configuration not found"
-Run `youtube-cli setup` to create your configuration.
 
-### "Authentication failed: Invalid client credentials"
-Your OAuth credentials may be incorrect. Run `youtube-cli setup` again or check your Google Cloud Console.
+Run: `npm run dev -- setup`
 
-### Port already in use
-Use a different port:
+### "Invalid client credentials"
+
+Your OAuth credentials may be incorrect. Run setup again and double-check your Client ID and Secret.
+
+### "Port already in use"
+
 ```bash
-youtube-cli auth --port 3001
+npm run dev -- auth --port 3001
 ```
 
-Or update your configuration:
+Or update config: `npm run dev -- config set oauth.port 3001`
+
+### "Token expired"
+
+The CLI auto-refreshes tokens, but if that fails:
+
 ```bash
-youtube-cli config set oauth.port 3001
+npm run dev -- logout
+npm run dev -- auth
 ```
 
-### Token expired
-The CLI automatically refreshes access tokens. If that fails:
-```bash
-youtube-cli logout
-youtube-cli auth
-```
+### "Upload quota exceeded"
 
-### Upload quota exceeded
-YouTube has daily upload quotas. Check your quota at:
+YouTube has daily upload quotas. Check at:
 https://console.cloud.google.com/apis/api/youtube.googleapis.com/quotas
-
-### Comments disabled
-Some videos have comments disabled. You'll receive an error if you try to read or post comments.
-
-## Security & Privacy
-
-- **Your credentials are stored locally only** at `~/.youtube-cli/config.json`
-- Config file has restricted permissions (0600)
-- **Never commit your config file to version control**
-- Credentials are never logged to console
-- This tool makes direct API calls to YouTube - no intermediary servers
-
-## Examples
-
-### Upload a video with all metadata
-```bash
-youtube-cli upload my-video.mp4 \
-  --title "My Tutorial Video" \
-  --description "Learn how to use this amazing tool" \
-  --privacy public \
-  --tags "tutorial,howto,education" \
-  --category 27 \
-  --thumbnail thumb.jpg
-```
-
-### Batch check video stats
-```bash
-for id in dQw4w9WgXcQ abc123def456; do
-  youtube-cli stats $id
-done
-```
-
-### Export videos list to JSON
-```bash
-youtube-cli videos --format json > my-videos.json
-```
 
 ## Development
 
-### Run from source
 ```bash
-npm install
-npm run dev -- setup
-```
+# Run in dev mode (no build needed, changes reflected immediately)
+npm run dev -- COMMAND
 
-### Build
-```bash
+# Build TypeScript
 npm run build
+
+# Link globally for testing (after building)
+npm link
+
+# Now test as if it's installed
+youtube-creator-cli --help
+
+# Make changes, rebuild, and test again
+npm run build
+youtube-creator-cli COMMAND
+
+# Unlink when done
+npm unlink -g youtube-creator-cli
 ```
 
-### Test
-```bash
-npm test
-```
+## Security
 
-## Contributing
+- Credentials are stored locally only
+- Config file has restricted permissions (owner read/write only)
+- Never commit config files to git
+- No intermediary servers - direct API calls to YouTube
+- OAuth tokens automatically refresh
 
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+## API Limits
+
+YouTube Data API v3 has quota limits:
+- Default: 10,000 units per day
+- Upload: ~1600 units per video
+- Check usage: https://console.cloud.google.com/apis/api/youtube.googleapis.com/quotas
 
 ## License
 
@@ -404,15 +333,9 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 
 ## Links
 
-- GitHub Repository: https://github.com/yourusername/youtube-cli
 - YouTube Data API v3: https://developers.google.com/youtube/v3
 - Google Cloud Console: https://console.cloud.google.com/
 
-## Support
-
-- Issues: https://github.com/yourusername/youtube-cli/issues
-- Discussions: https://github.com/yourusername/youtube-cli/discussions
-
 ---
 
-**Note:** This tool is not affiliated with or endorsed by Google or YouTube. It uses the official YouTube Data API v3.
+**Note:** This tool is not affiliated with or endorsed by Google or YouTube.
