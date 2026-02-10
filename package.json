@@ -1,25 +1,23 @@
 {
-  "name": "youtube-cli",
-  "version": "1.0.0",
+  "name": "youtube-creator-cli",
+  "version": "0.1.0",
   "description": "Command-line interface for YouTube Data API v3",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "youtube-cli": "./bin/youtube"
+    "youtube-creator-cli": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/index.ts",
-    "test": "jest",
-    "prepublishOnly": "npm run build",
+    "dev": "NODE_NO_WARNINGS=1 node --loader ts-node/esm src/index.ts",
     "start": "node dist/index.js"
   },
   "keywords": ["youtube", "cli", "video", "upload", "api"],
-  "author": "",
+  "author": "Your Name <your.email@example.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/youtube-cli.git"
+    "url": "https://github.com/yourusername/youtube-creator-cli.git"
   },
   "dependencies": {
     "googleapis": "^134.0.0",
