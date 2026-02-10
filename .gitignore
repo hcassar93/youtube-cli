@@ -1,0 +1,23 @@
+node_modules/
+dist/
+build/
+*.log
+.DS_Store
+
+# Never commit credentials
+config.json
+.youtube-cli/
+credentials.json
+client_secret*.json
+*.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+coverage/
+.nyc_output/
