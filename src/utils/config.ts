@@ -19,10 +19,25 @@ export interface DefaultsConfig {
   outputFormat: 'table' | 'json' | 'csv';
 }
 
+export interface AuthProfileTokens {
+  refresh_token?: string;
+  access_token?: string;
+  expires_at?: number;
+  /** Cached for display/debugging; not required for auth. */
+  channel_id?: string;
+  channel_title?: string;
+}
+
 export interface AppConfig {
+  /** OAuth client credentials + local redirect settings */
   oauth: OAuthConfig;
   defaults: DefaultsConfig;
   version: string;
+
+  /** Multiple auth token sets (e.g. different YouTube channels/brand accounts). */
+  authProfiles?: Record<string, AuthProfileTokens>;
+  /** Active auth profile name. */
+  activeProfile?: string;
 }
 
 const DEFAULT_CONFIG: Partial<AppConfig> = {
@@ -99,8 +114,14 @@ class ConfigManager {
   }
 
   public isAuthenticated(): boolean {
-    const oauth = this.get('oauth');
-    return !!(oauth?.access_token || oauth?.refresh_token);
+    const store = this.getAll();
+    const active = store.activeProfile || 'default';
+    const p = store.authProfiles?.[active];
+
+    // Back-compat: older configs stored tokens under oauth.*
+    const oauth = store.oauth;
+
+    return !!(p?.access_token || p?.refresh_token || oauth?.access_token || oauth?.refresh_token);
   }
 }
 

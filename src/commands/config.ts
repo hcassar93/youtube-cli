@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { config } from '../utils/config.js';
+import { ensureProfilesMigrated, getActiveProfileName, setActiveProfileName } from '../utils/profiles.js';
 import { maskSecret } from '../utils/formatting.js';
 
 export function registerConfigCommand(program: Command): void {
@@ -18,15 +19,29 @@ export function registerConfigCommand(program: Command): void {
         return;
       }
 
+      ensureProfilesMigrated();
       const cfg = config.getAll();
       const oauth = cfg.oauth;
 
       console.log(chalk.cyan.bold('\nConfiguration:\n'));
-      console.log(chalk.bold('OAuth:'));
+      console.log(chalk.bold('OAuth client:'));
       console.log(`  Client ID: ${options.revealSecrets ? oauth.client_id : maskSecret(oauth.client_id)}`);
       console.log(`  Client Secret: ${options.revealSecrets ? oauth.client_secret : maskSecret(oauth.client_secret, 0)}`);
       console.log(`  Port: ${oauth.port}`);
+      console.log(`  Active profile: ${chalk.bold(getActiveProfileName())}`);
       console.log(`  Authenticated: ${config.isAuthenticated() ? chalk.green('Yes') : chalk.red('No')}`);
+
+      const profiles = cfg.authProfiles || {};
+      const profileNames = Object.keys(profiles);
+      if (profileNames.length) {
+        console.log(chalk.bold('\nAuth profiles:'));
+        for (const name of profileNames) {
+          const p: any = profiles[name] || {};
+          const tag = name === getActiveProfileName() ? chalk.green(' (active)') : '';
+          const channel = p.channel_title ? ` — ${p.channel_title}` : '';
+          console.log(`  - ${name}${tag}${channel}`);
+        }
+      }
 
       if (cfg.defaults) {
         console.log(chalk.bold('\nDefaults:'));
@@ -37,6 +52,19 @@ export function registerConfigCommand(program: Command): void {
 
       console.log(chalk.bold('\nConfig File:'), config.getPath());
       console.log('');
+    });
+
+  configCmd
+    .command('use-profile <name>')
+    .description('Switch active auth profile')
+    .action((name) => {
+      if (!config.exists()) {
+        console.log(chalk.yellow('No configuration found. Run: youtube-cli setup'));
+        return;
+      }
+      ensureProfilesMigrated();
+      setActiveProfileName(name);
+      console.log(chalk.green(`✓ Active profile set to ${name}`));
     });
 
   configCmd

@@ -6,6 +6,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { getCredentials, saveTokens, getRefreshToken, updateAccessToken, isTokenExpired } from './credentials.js';
 import { config } from '../utils/config.js';
+import { ensureProfilesMigrated, getActiveProfileName, setActiveProfileName, setActiveProfileTokens } from '../utils/profiles.js';
 
 const SCOPES = [
   'https://www.googleapis.com/auth/youtube',
@@ -13,12 +14,15 @@ const SCOPES = [
   'https://www.googleapis.com/auth/youtube.upload'
 ];
 
-export async function authenticate(port?: number, noBrowser: boolean = false): Promise<boolean> {
+export async function authenticate(port?: number, noBrowser: boolean = false, profile?: string): Promise<boolean> {
   const credentials = getCredentials();
   if (!credentials) {
     console.error(chalk.red('✗ OAuth credentials not found. Please run setup first.'));
     return false;
   }
+
+  ensureProfilesMigrated();
+  if (profile) setActiveProfileName(profile);
 
   const oauth = config.get('oauth');
   const authPort = port || oauth?.port || 3000;
@@ -77,8 +81,11 @@ export async function authenticate(port?: number, noBrowser: boolean = false): P
 
         spinner.succeed('Authentication successful!');
         
-        // Display channel info
-        await displayChannelInfo(tokens.access_token);
+        // Display channel info + store on profile
+        const info = await displayChannelInfo(tokens.access_token);
+        if (info?.channelId) {
+          setActiveProfileTokens({ channel_id: info.channelId, channel_title: info.channelTitle });
+        }
         
         server.close();
         resolve(true);
@@ -175,6 +182,8 @@ export async function refreshAccessToken(): Promise<boolean> {
 }
 
 export async function ensureValidToken(): Promise<string | null> {
+  ensureProfilesMigrated();
+
   if (isTokenExpired()) {
     const refreshed = await refreshAccessToken();
     if (!refreshed) {
@@ -184,11 +193,11 @@ export async function ensureValidToken(): Promise<string | null> {
     }
   }
 
-  const oauth = config.get('oauth');
-  return oauth?.access_token || null;
+  // tokens are stored under the active profile
+  return config.getAll().authProfiles?.[getActiveProfileName()]?.access_token || null;
 }
 
-async function displayChannelInfo(accessToken: string): Promise<void> {
+async function displayChannelInfo(accessToken: string): Promise<{ channelId?: string; channelTitle?: string } | null> {
   try {
     const youtube = google.youtube({
       version: 'v3',
@@ -200,16 +209,24 @@ async function displayChannelInfo(accessToken: string): Promise<void> {
       mine: true
     });
 
-    if (response.data.items && response.data.items.length > 0) {
-      const channel = response.data.items[0];
-      console.log(chalk.green('\n✓ You are now authenticated as:'));
-      console.log(`  Channel: ${chalk.bold(channel.snippet?.title)}`);
-      if (channel.statistics?.subscriberCount) {
-        console.log(`  Subscribers: ${parseInt(channel.statistics.subscriberCount).toLocaleString()}`);
-      }
-      console.log('');
+    const channels = response.data.items || [];
+    if (!channels.length) {
+      console.log(chalk.yellow('⚠ No channels found for this account'));
+      return null;
     }
+
+    console.log(chalk.cyan('\nChannel Information:'));
+    channels.forEach((channel) => {
+      console.log(chalk.bold(`\n  • ${channel.snippet?.title}`));
+      console.log(`    ID: ${channel.id}`);
+      console.log(`    Subscribers: ${channel.statistics?.subscriberCount || 'N/A'}`);
+      console.log(`    Videos: ${channel.statistics?.videoCount || 'N/A'}`);
+    });
+    console.log('');
+
+    return { channelId: channels[0].id ?? undefined, channelTitle: channels[0].snippet?.title ?? undefined };
   } catch (error) {
     // Silent fail - not critical
+    return null;
   }
 }

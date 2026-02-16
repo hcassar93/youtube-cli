@@ -10,11 +10,12 @@ export function registerAuthCommand(program: Command): void {
     .description('Authenticate with YouTube using configured credentials')
     .option('--port <number>', 'Override OAuth callback port')
     .option('--no-browser', 'Display URL instead of opening browser')
+    .option('--profile <name>', 'Auth profile name to store tokens under (default: active profile)')
     .action(async (options) => {
       requireSetup();
 
       const port = options.port ? parseInt(options.port) : undefined;
-      const success = await authenticate(port, !options.browser);
+      const success = await authenticate(port, !options.browser, options.profile);
 
       if (!success) {
         process.exit(1);
