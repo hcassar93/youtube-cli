@@ -123,3 +123,47 @@ export function registerPlaylistAddCommand(program: Command): void {
       }
     });
 }
+
+export function registerPlaylistDeleteCommand(program: Command): void {
+  program
+    .command('playlist-delete <playlistId>')
+    .description('Delete a playlist')
+    .option('--confirm', 'Skip confirmation prompt')
+    .action(async (playlistId, options) => {
+      requireAuth();
+
+      if (!options.confirm) {
+        const inquirer = (await import('inquirer')).default;
+        const { confirm } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'confirm',
+            message: `Delete playlist ${playlistId}?`,
+            default: false
+          }
+        ]);
+
+        if (!confirm) {
+          console.log('Cancelled.');
+          return;
+        }
+      }
+
+      const spinner = ora('Deleting playlist...').start();
+
+      try {
+        const initialized = await youtubeAPI.initialize();
+        if (!initialized) {
+          spinner.fail('Failed to initialize YouTube API');
+          process.exit(1);
+        }
+
+        await youtubeAPI.deletePlaylist(playlistId);
+        spinner.succeed('Playlist deleted successfully!');
+      } catch (error: any) {
+        spinner.fail('Failed to delete playlist');
+        console.error(chalk.red(error.message));
+        process.exit(1);
+      }
+    });
+}

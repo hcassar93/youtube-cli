@@ -267,6 +267,14 @@ export class YouTubeAPI {
     return response.data;
   }
 
+  async deletePlaylist(playlistId: string): Promise<void> {
+    this.ensureInitialized();
+
+    await this.youtube!.playlists.delete({
+      id: playlistId
+    });
+  }
+
   async getComments(videoId: string, maxResults: number = 20): Promise<any[]> {
     this.ensureInitialized();
 
