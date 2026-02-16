@@ -124,6 +124,51 @@ export function registerPlaylistAddCommand(program: Command): void {
     });
 }
 
+export function registerPlaylistUpdateCommand(program: Command): void {
+  program
+    .command('playlist-update <playlistId>')
+    .description('Update playlist metadata')
+    .option('--title <title>', 'Playlist title')
+    .option('--description <description>', 'Playlist description')
+    .option('--privacy <privacy>', 'Privacy status (public|private|unlisted)')
+    .action(async (playlistId, options) => {
+      requireAuth();
+
+      if (options.privacy && !validatePrivacyStatus(options.privacy)) {
+        console.error(chalk.red('✗ Invalid privacy status. Use: public, private, or unlisted'));
+        process.exit(1);
+      }
+
+      const spinner = ora('Updating playlist...').start();
+
+      try {
+        const initialized = await youtubeAPI.initialize();
+        if (!initialized) {
+          spinner.fail('Failed to initialize YouTube API');
+          process.exit(1);
+        }
+
+        const playlist = await youtubeAPI.updatePlaylist(playlistId, {
+          title: options.title,
+          description: options.description,
+          privacy: options.privacy
+        });
+
+        spinner.succeed('Playlist updated successfully!');
+
+        console.log(chalk.green.bold('\n✓ Playlist updated!\n'));
+        console.log(`  ID: ${playlist.id}`);
+        console.log(`  Title: ${playlist.snippet.title}`);
+        console.log(`  Status: ${playlist.status.privacyStatus}`);
+        console.log('');
+      } catch (error: any) {
+        spinner.fail('Failed to update playlist');
+        console.error(chalk.red(error.message));
+        process.exit(1);
+      }
+    });
+}
+
 export function registerPlaylistDeleteCommand(program: Command): void {
   program
     .command('playlist-delete <playlistId>')

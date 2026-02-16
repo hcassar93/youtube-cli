@@ -248,6 +248,41 @@ export class YouTubeAPI {
     return response.data;
   }
 
+  async updatePlaylist(playlistId: string, updates: {
+    title?: string;
+    description?: string;
+    privacy?: string;
+  }): Promise<any> {
+    this.ensureInitialized();
+
+    const existing = await this.youtube!.playlists.list({
+      part: ['snippet', 'status'],
+      id: [playlistId]
+    });
+
+    const pl = existing.data.items?.[0];
+    if (!pl) throw new Error('Playlist not found');
+
+    const snippet = pl.snippet!;
+    const status = pl.status!;
+
+    const response = await this.youtube!.playlists.update({
+      part: ['snippet', 'status'],
+      requestBody: {
+        id: playlistId,
+        snippet: {
+          title: updates.title ?? snippet.title,
+          description: updates.description ?? snippet.description
+        },
+        status: {
+          privacyStatus: (updates.privacy ?? status.privacyStatus) as any
+        }
+      }
+    });
+
+    return response.data;
+  }
+
   async addToPlaylist(playlistId: string, videoId: string): Promise<any> {
     this.ensureInitialized();
 

@@ -7,7 +7,7 @@ import { registerChannelsCommand } from './commands/channels.js';
 import { registerVideosCommand, registerUpdateCommand, registerDeleteCommand, registerStatsCommand } from './commands/videos.js';
 import { registerUploadCommand } from './commands/upload.js';
 import { registerThumbnailCommand } from './commands/thumbnail.js';
-import { registerPlaylistsCommand, registerPlaylistCreateCommand, registerPlaylistAddCommand, registerPlaylistDeleteCommand } from './commands/playlists.js';
+import { registerPlaylistsCommand, registerPlaylistCreateCommand, registerPlaylistAddCommand, registerPlaylistUpdateCommand, registerPlaylistDeleteCommand } from './commands/playlists.js';
 import { registerCommentsCommand, registerCommentCommand } from './commands/comments.js';
 
 const program = new Command();
@@ -43,6 +43,7 @@ registerThumbnailCommand(program);
 registerPlaylistsCommand(program);
 registerPlaylistCreateCommand(program);
 registerPlaylistAddCommand(program);
+registerPlaylistUpdateCommand(program);
 registerPlaylistDeleteCommand(program);
 
 // Comments
