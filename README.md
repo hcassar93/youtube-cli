@@ -14,44 +14,34 @@ This is an **open-source tool** that requires you to provide your own Google OAu
 
 ## Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/youtube-creator-cli.git
-cd youtube-creator-cli
+### Option 1: Install from npm (Recommended)
 
-# Install dependencies
+Install globally from npm:
+
+```bash
+npm install -g youtube-creator-cli
+```
+
+### Option 2: Install from Source
+
+Clone the repository and build locally:
+
+```bash
+git clone https://github.com/hcassar93/youtube-cli.git
+cd youtube-cli
 npm install
-
-# Build
 npm run build
+npm link  # Install globally
 ```
 
-### Option 1: Run with npm (Recommended for Quick Start)
+Once installed, you can use `youtube-creator-cli` from anywhere:
 
 ```bash
-npm run dev -- setup
-npm run dev -- auth
-npm run dev -- upload video.mp4 --title "My Video"
-```
-
-### Option 2: Link Globally (Recommended for Regular Use)
-
-Make the command available globally so you can use `youtube-creator-cli` directly:
-
-```bash
-# After building, link it globally
-npm link
-
-# Now you can use it anywhere without npm run dev
+youtube-creator-cli --version
 youtube-creator-cli setup
 youtube-creator-cli auth
 youtube-creator-cli upload video.mp4 --title "My Video"
-
-# To unlink later (if needed)
-npm unlink -g youtube-creator-cli
 ```
-
-> **Note:** This tool is not published to npm because Copilot can't be bothered with all that. Clone and link instead! 🤷
 
 ## Getting Started
 
