@@ -21,3 +21,4 @@ client_secret*.json
 # Testing
 coverage/
 .nyc_output/
+.npmrc
