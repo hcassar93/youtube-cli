@@ -1,3 +1,11 @@
+---
+name: youtube-creator-cli-skill
+description: Comprehensive operational guide for agents using YouTube Creator CLI.
+version: 1.0.0
+tools:
+  - youtube-creator-cli
+---
+
 # YouTube Creator CLI Skill (`youtube-creator-cli`)
 
 This skill teaches an agent to use the YouTube Creator CLI safely, deterministically, and non-interactively where possible.
@@ -269,4 +277,3 @@ youtube-creator-cli comments <VIDEO_ID>
 youtube-creator-cli comment <VIDEO_ID> "Great video!"
 youtube-creator-cli logout
 ```
-

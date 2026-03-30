@@ -1,3 +1,11 @@
+---
+name: youtube-creator-cli-compliance-skill
+description: Compliance and safety controls for agents operating YouTube Creator CLI.
+version: 1.0.0
+tools:
+  - youtube-creator-cli
+---
+
 # Compliance Skill: YouTube Creator CLI
 
 This compliance skill defines how an agent must use `youtube-creator-cli` in a safe, policy-aligned way.
@@ -137,4 +145,3 @@ youtube-creator-cli reset --confirm
 - Deleting a video without explicit confirmation context
 - Using unknown/untrusted OAuth credentials
 - Claiming success when command failed
-
